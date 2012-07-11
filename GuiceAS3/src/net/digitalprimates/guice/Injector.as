@@ -67,7 +67,7 @@ package net.digitalprimates.guice {
 			return null; //binding.provide( this );
 		}
 
-		private function buildClass( dependency:Class ):* {
+		public function buildClass( dependency:Class ):* {
 			var type:Klass = new InjectionClass( dependency, binder.evaluationDomain );
 			var built:* = buildFromTypeInfo( type );
 			
