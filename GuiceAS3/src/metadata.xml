@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<annotations version="1.0">
+	<metadata name="Inject" description="Guice dependency injection">
+		<context name="variable" />
+		<context name="getter" />
+		<context name="setter" />
+		<context name="method" />
+		<attribute name="" type="String" description="Annotation name for injection" />
+	</metadata>
+</annotations>

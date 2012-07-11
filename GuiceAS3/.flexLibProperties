@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<flexLibProperties includeAllClasses="false" version="3">
+  <includeClasses>
+    <classEntry path="net.digitalprimates.guice.Guice"/>
+    <classEntry path="net.digitalprimates.guice.GuiceAnnotations"/>
+    <classEntry path="net.digitalprimates.guice.IBindingOwner"/>
+    <classEntry path="net.digitalprimates.guice.IBindingResolver"/>
+    <classEntry path="net.digitalprimates.guice.IGuiceModule"/>
+    <classEntry path="net.digitalprimates.guice.IInjector"/>
+    <classEntry path="net.digitalprimates.guice.IProvider"/>
+    <classEntry path="net.digitalprimates.guice.Injector"/>
+    <classEntry path="net.digitalprimates.guice.InjectorDelegator"/>
+    <classEntry path="net.digitalprimates.guice.Scopes"/>
+    <classEntry path="net.digitalprimates.guice.binder.Binder"/>
+    <classEntry path="net.digitalprimates.guice.binder.IBinder"/>
+    <classEntry path="net.digitalprimates.guice.binding.BinderBase"/>
+    <classEntry path="net.digitalprimates.guice.binding.IBinding"/>
+    <classEntry path="net.digitalprimates.guice.binding.IVerifiedBinding"/>
+    <classEntry path="net.digitalprimates.guice.binding.decoration.IBindingDecorator"/>
+    <classEntry path="net.digitalprimates.guice.binding.decoration.VerifiedSessionDecorator"/>
+    <classEntry path="net.digitalprimates.guice.binding.decoration.VerifiedSingletonDecorator"/>
+    <classEntry path="net.digitalprimates.guice.binding.verified.VerifiedBaseBinding"/>
+    <classEntry path="net.digitalprimates.guice.binding.verified.VerifiedBindingFactory"/>
+    <classEntry path="net.digitalprimates.guice.binding.verified.VerifiedClassBinding"/>
+    <classEntry path="net.digitalprimates.guice.binding.verified.VerifiedInstanceBinding"/>
+    <classEntry path="net.digitalprimates.guice.binding.verified.VerifiedProviderBinding"/>
+    <classEntry path="net.digitalprimates.guice.hierarchy.ChildInjector"/>
+    <classEntry path="net.digitalprimates.guice.hierarchy.IChildInjector"/>
+    <classEntry path="net.digitalprimates.guice.inject"/>
+    <classEntry path="net.digitalprimates.guice.injectable.GlobalStaticInjector"/>
+    <classEntry path="net.digitalprimates.guice.injectable.IInjectorSetup"/>
+    <classEntry path="net.digitalprimates.guice.injector.BaseInjector"/>
+    <classEntry path="net.digitalprimates.guice.reflect.ConstructorAnnotations"/>
+    <classEntry path="net.digitalprimates.guice.session.ISessionState"/>
+    <classEntry path="net.digitalprimates.guice.session.SessionState"/>
+    <classEntry path="net.digitalprimates.guice.utils.CircularResolutionWatcher"/>
+    <classEntry path="net.digitalprimates.guice.utils.DependencyHasher"/>
+    <classEntry path="net.digitalprimates.guice.utils.InjectorMap"/>
+    <classEntry path="net.digitalprimates.guice.utils.KlassFactory"/>
+    <classEntry path="net.digitalprimates.guice.utils.events.InjectorAddedEvent"/>
+    <classEntry path="net.digitalprimates.guice.verifier.DependencyVerifier"/>
+    <classEntry path="flex.lang.reflect.Constructor"/>
+    <classEntry path="flex.lang.reflect.Field"/>
+    <classEntry path="flex.lang.reflect.InjectionClass"/>
+    <classEntry path="flex.lang.reflect.Klass"/>
+    <classEntry path="flex.lang.reflect.Method"/>
+    <classEntry path="flex.lang.reflect.builders.FieldBuilder"/>
+    <classEntry path="flex.lang.reflect.builders.MetaDataAnnotationBuilder"/>
+    <classEntry path="flex.lang.reflect.builders.MethodBuilder"/>
+    <classEntry path="flex.lang.reflect.builders.injection.InjectionFieldBuilder"/>
+    <classEntry path="flex.lang.reflect.builders.injection.InjectionMethodBuilder"/>
+    <classEntry path="flex.lang.reflect.cache.ClassDataCache"/>
+    <classEntry path="flex.lang.reflect.constructor.ConstructorArg"/>
+    <classEntry path="flex.lang.reflect.metadata.MetaDataAnnotation"/>
+    <classEntry path="flex.lang.reflect.metadata.MetaDataArgument"/>
+    <classEntry path="flex.lang.reflect.utils.MetadataTools"/>
+    <classEntry path="net.digitalprimates.guice.errors.ResolutionError"/>
+    <classEntry path="net.digitalprimates.guice.errors.UnboundInterfaceError"/>
+    <classEntry path="net.digitalprimates.guice.errors.GuiceError"/>
+  </includeClasses>
+  <includeResources/>
+  <namespaceManifests/>
+</flexLibProperties>

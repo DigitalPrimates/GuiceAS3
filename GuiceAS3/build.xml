@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+
+<project name="GuiceAS3" default="main" basedir=".">
+
+	<property name="libraries.dir" value="${basedir}/../Libraries" />
+	<property name="bin.dir" value="${basedir}/bin" />
+	<property name="flex.debug" value="false" />
+	<property file="build.properties"/>	
+	<import file="${libraries.dir}/build.xml" />
+
+	<target name="main" depends="build.swc,copyToThrasysInstall">
+		
+	</target>
+
+	<target name="build.swc">
+	
+		<!--copy file="${basedir}/src/manifest.xml" todir="${basedir}"> </copy-->
+	
+		<xslt style="${libraries.dir}/com.thrasys/flexLib2flexConfig.xsl" in="${basedir}/.flexLibProperties" out="${basedir}/${ant.project.name}-config.xml" force="true">
+			<param name="FLEX_SDK" expression="${flex.dir}" />
+		</xslt>
+
+		<xslt style="${libraries.dir}/com.thrasys/flex-lib-build.xsl" in="${basedir}/.actionScriptProperties" out="${basedir}/${ant.project.name}-build.xml" force="true">
+			<param name="FLEX_SDK" expression="${flex.dir}" />
+			<param name="FLEX_CONFIG" expression="${basedir}/${ant.project.name}-config.xml" />
+			<param name="MAIN_APP" expression="${ant.project.name}" />
+			<param name="WORKSPACE_DIR" expression="${basedir}/.." />
+			<param name="AUTOMATION_DIR" expression="${thrasys.install.dir}/lib/flex/automation" />
+			<param name="FLEX_DEBUG" expression="${flex.debug}" />
+		</xslt>
+
+		<ant antfile="${basedir}/${ant.project.name}-build.xml" target="build" />
+
+		<copy file="${bin.dir}/${ant.project.name}.swc" todir="${thrasys.install.dir}/lib/flex"></copy>
+    
+	</target>
+
+	<target name="copyToThrasysInstall">
+		<copy file="${bin.dir}/${ant.project.name}.swc" todir="${thrasys.install.dir}/lib/flex"></copy>
+	</target>
+	
+</project>
