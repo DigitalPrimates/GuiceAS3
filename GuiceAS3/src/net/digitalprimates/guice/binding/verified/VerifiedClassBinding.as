@@ -55,7 +55,7 @@ package net.digitalprimates.guice.binding.verified {
 		}
 		
 		override public function provide( injector:Injector ):* {
-			return injector.getInstance( dependency );
+			return injector.buildClass( dependency );
 		}		
 
 		public function VerifiedClassBinding( type:Class, annotation:String, dependency:Class ) {

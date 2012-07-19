@@ -70,7 +70,7 @@ package net.digitalprimates.guice.binding.decoration {
 
 		public function provide(injector:Injector):* {
 			if ( !instance ) {
-				instance = injector.buildClass(type);
+				instance = binding.provide(injector);
 			}
 			return instance;
 		}
