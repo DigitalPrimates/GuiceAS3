@@ -26,7 +26,6 @@
  * @version	       
  **/ 
 package net.digitalprimates.guice.verifier {
-	import net.digitalprimates.guice.GuiceAnnotations;
 	import net.digitalprimates.guice.binder.IBinder;
 	import net.digitalprimates.guice.binding.IBinding;
 	import net.digitalprimates.guice.binding.IVerifiedBinding;
@@ -34,74 +33,63 @@ package net.digitalprimates.guice.verifier {
 	import net.digitalprimates.guice.binding.verified.VerifiedProviderBinding;
 	import net.digitalprimates.guice.reflect.ConstructorAnnotations;
 	import net.digitalprimates.guice.utils.CircularResolutionWatcher;
-	import net.digitalprimates.guice.utils.KlassFactory;
 	
-	import flex.lang.reflect.Field;
-	import flex.lang.reflect.Klass;
-	import flex.lang.reflect.constructor.ConstructorArg;
-	import flex.lang.reflect.metadata.MetaDataAnnotation;
-	import flex.lang.reflect.metadata.MetaDataArgument;
+	import reflection.HorribleTypeDefinitionCache;
+	import reflection.InjectionPoint;
+	import reflection.TypeDescription;
 	
 	public class DependencyVerifier {
 		
 		private var binder:IBinder;
 		private var watcher:CircularResolutionWatcher;
-		private var klassFactory:KlassFactory;
 		
 		public function verifyDependency( verifiedBinding:IVerifiedBinding ):void {
-			var klass:Klass;
+			var typeDescription:TypeDescription;
 			
 			if ( !watcher.isComplete( verifiedBinding.typeName, verifiedBinding.annotation ) ) {
-				klass = new Klass( verifiedBinding.type, binder.evaluationDomain );
-				recursivelyVerifyDependency( null, klass, verifiedBinding.annotation, this );
+				typeDescription = HorribleTypeDefinitionCache.get( verifiedBinding.type );					
+				recursivelyVerifyDependency( null, typeDescription, verifiedBinding.annotation, this );
 			}
 		}
 		
-		public function verifyConstructor( klass:Klass, constructorAnnotations:ConstructorAnnotations, childVerifier:DependencyVerifier ):Boolean {
-			var constructorParams:Array = klass.constructor.parameterTypes;
+		public function verifyConstructor( typeDescription:TypeDescription, constructorAnnotations:ConstructorAnnotations, childVerifier:DependencyVerifier ):Boolean {
+			var constructorParams:Vector.<InjectionPoint> = typeDescription.constructorPoints;
 			
-			var constructorArg:ConstructorArg;
-			for ( var i:int=0; i<constructorParams.length; i++ ) {
-				
-				constructorArg = ( constructorParams[ i ] as ConstructorArg );
-				
-				if ( constructorArg.required ) {
-					//Need refactored way to get constructor dependencies
-					childVerifier.recursivelyVerifyDependency( klass, 
-						klassFactory.newInstance( constructorArg.type, binder.evaluationDomain ), 
-						constructorAnnotations.getAnnotationAt( i ), 
-						childVerifier );
-				}
-			}
-			
-			return true;
-		}
-		
-		public function verifyFields( klass:Klass, childVerifier:DependencyVerifier ):Boolean {
-			var fields:Array = klass.fields;
-			var field:Field;
-			var fieldAnnotation:MetaDataAnnotation;
-			
-			for ( var j:int=0;j<fields.length; j++ ) {
-				field = fields[ j ];
-				//Worry about static soon
-				fieldAnnotation = field.getMetaData( GuiceAnnotations.INJECT );
-				if ( fieldAnnotation ) {
-					//If we are annotated with Inject
-					var scope:String = "";
-					var defaultArgument:MetaDataArgument = fieldAnnotation.defaultArgument; 
-					if ( defaultArgument ) {
-						scope = defaultArgument.key
-					}
+			var constructorArg:InjectionPoint;
+			if ( constructorParams ) {
+				for ( var i:int=0; i<constructorParams.length; i++ ) {
 					
-					childVerifier.recursivelyVerifyDependency( klass, klassFactory.newInstance( field.type, binder.evaluationDomain ), scope, childVerifier );
+					constructorArg = constructorParams[ i ];
+					
+					if ( !constructorArg.optional ) {
+						//Need refactored way to get constructor dependencies
+						childVerifier.recursivelyVerifyDependency( typeDescription, 
+							HorribleTypeDefinitionCache.get( constructorArg.type ), 
+							constructorArg.annotation,
+							childVerifier );
+					}
 				}
 			}
 			
 			return true;
 		}
 		
-		public function recursivelyVerifyDependency( parentDependency:Klass, dependency:Klass, annotation:String, verifier:DependencyVerifier ):void {
+		public function verifyFields( typeDescription:TypeDescription, childVerifier:DependencyVerifier ):Boolean {
+			var fields:Vector.<InjectionPoint> = typeDescription.fieldPoints
+			var field:InjectionPoint;
+			
+			if ( fields ) {
+				for ( var j:int=0;j<fields.length; j++ ) {
+					field = fields[ j ];
+	
+					childVerifier.recursivelyVerifyDependency( typeDescription, HorribleTypeDefinitionCache.get( field.type ), field.annotation, childVerifier );
+				}
+			}
+			
+			return true;
+		}
+		
+		public function recursivelyVerifyDependency( parentDependency:TypeDescription, dependency:TypeDescription, annotation:String, verifier:DependencyVerifier ):void {
 			//Two types of dependencies we are worried about right now..
 			var baseBinding:IBinding = binder.getBindingByName( dependency.name, annotation );
 			
@@ -131,7 +119,7 @@ package net.digitalprimates.guice.verifier {
 			}
 		}
 		
-		private function throwCircularError( dependency:Klass, parentDependency:Klass ):void {
+		private function throwCircularError( dependency:TypeDescription, parentDependency:TypeDescription ):void {
 			if ( parentDependency ) {
 				throw new Error("Circular dependency found when resolving " + dependency.name + " in class " + parentDependency.name );	
 			} else {
@@ -139,7 +127,7 @@ package net.digitalprimates.guice.verifier {
 			}			
 		}
 		
-		private function throwNoResolveError( dependency:Klass, parentDependency:Klass ):void {
+		private function throwNoResolveError( dependency:TypeDescription, parentDependency:TypeDescription ):void {
 			if ( parentDependency ) {
 				throw new Error("Cannot resolve dependencies " + dependency.name + " in class " + parentDependency.name );	
 			} else {
@@ -147,10 +135,9 @@ package net.digitalprimates.guice.verifier {
 			}			
 		}
 		
-		public function DependencyVerifier( binder:IBinder, watcher:CircularResolutionWatcher, klassFactory:KlassFactory ) {
+		public function DependencyVerifier( binder:IBinder, watcher:CircularResolutionWatcher ) {
 			this.binder = binder;
 			this.watcher = watcher;
-			this.klassFactory = klassFactory;
 		}
 	}
 }

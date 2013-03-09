@@ -1,9 +1,9 @@
 package net.digitalprimates.guice.errors {
-	import flex.lang.reflect.Klass;
+	import reflection.TypeDescription;
 
 	public class UnboundInterfaceError extends GuiceError {
-		public function UnboundInterfaceError( type:Klass ) {
-			super( "An object requires an unbound interface: " + type.asClass);
+		public function UnboundInterfaceError( typeDef:TypeDescription ) {
+			super( "An object requires an unbound interface: " + typeDef.type );
 		}
 	}
 }

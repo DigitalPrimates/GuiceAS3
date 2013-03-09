@@ -30,21 +30,22 @@ package net.digitalprimates.guice.binding.verified {
 	import flash.system.ApplicationDomain;
 	import flash.utils.getDefinitionByName;
 	
-	import flex.lang.reflect.Klass;
-	import flex.lang.reflect.metadata.MetaDataAnnotation;
-	
 	import net.digitalprimates.guice.GuiceAnnotations;
 	import net.digitalprimates.guice.IProvider;
 	import net.digitalprimates.guice.Injector;
+	
+	import reflection.TypeDescription;
 
 	public class VerifiedProviderBinding extends VerifiedBaseBinding {
 		private var providerClass:Class;
 
 		override public function verify( evaluationDomain:ApplicationDomain ):void {
-			var providerInfo:Klass = new Klass( providerClass, evaluationDomain );
-			var providedClassInfo:Klass;;
+			var providerInfo:TypeDescription = new TypeDescription( providerClass );
+			var providedClassInfo:TypeDescription;;
 			var implementsInterface:Boolean = false;
 			
+			throw new Error("Not implemented");
+			/*
 			if ( !providerInfo.implementsInterface( IProvider ) ) {
 				//throwMessage( type, provider );
 				throw new TypeError("Error attempting to provider bind class that does not implement IProvider to " + type );
@@ -70,6 +71,7 @@ package net.digitalprimates.guice.binding.verified {
 			//basically, the validation inside of ClassBinding
 			var classBinding:VerifiedClassBinding = new VerifiedClassBinding( type, "", providedClass );
 			classBinding.verify( evaluationDomain );
+			*/
 		}
 
 		override public function provide( injector:Injector ):* {

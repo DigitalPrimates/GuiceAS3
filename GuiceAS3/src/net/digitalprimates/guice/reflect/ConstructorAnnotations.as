@@ -26,15 +26,12 @@
  * @version	       
  **/ 
 package net.digitalprimates.guice.reflect {
-	import flex.lang.reflect.Klass;
-	import flex.lang.reflect.metadata.MetaDataAnnotation;
-	import flex.lang.reflect.metadata.MetaDataArgument;
-	
 	import net.digitalprimates.guice.GuiceAnnotations;
+	
+	import reflection.TypeDescription;
 
 	public class ConstructorAnnotations {
 
-		private var klass:Klass;
 		private var annotations:Array;
 		
 		public function getAnnotationAt( index:int ):String {
@@ -60,7 +57,7 @@ package net.digitalprimates.guice.reflect {
 			 * [Constructor(index=0,annotation="female")]
 			 * [Constructor(index=1,annotation="male")]
 			 **/
-			
+			/*
 			if ( annotations ) {
 				return annotations;
 			}
@@ -94,10 +91,13 @@ package net.digitalprimates.guice.reflect {
 			annotations = annotationArray;
 			
 			return annotations;
+			*/
+			return null;
 		}
+
 		
-		public function ConstructorAnnotations( klass:Klass ) {
-			this.klass = klass;
+		public function ConstructorAnnotations( typeDefinition:TypeDescription ) {
+			//this.klass = klass;
 		}
 	}
 }

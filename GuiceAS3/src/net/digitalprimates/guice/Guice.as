@@ -32,8 +32,6 @@ package net.digitalprimates.guice {
 	import net.digitalprimates.guice.session.SessionState;
 	import net.digitalprimates.guice.utils.CircularResolutionWatcher;
 	import net.digitalprimates.guice.utils.DependencyHasher;
-	import net.digitalprimates.guice.utils.InjectorMap;
-	import net.digitalprimates.guice.utils.KlassFactory;
 	import net.digitalprimates.guice.verifier.DependencyVerifier;
 
 	public class Guice {
@@ -51,8 +49,7 @@ package net.digitalprimates.guice {
 
 			//Verify before registering the injector to save a few cycles
 			var watcher:CircularResolutionWatcher = new CircularResolutionWatcher( hasher );
-			var klassFactory:KlassFactory = new KlassFactory();
-			var verifier:DependencyVerifier = new DependencyVerifier( binder, watcher, klassFactory );
+			var verifier:DependencyVerifier = new DependencyVerifier( binder, watcher );
 			binder.verify( verifier );
 
 			//Always add the Injector as a registered binding

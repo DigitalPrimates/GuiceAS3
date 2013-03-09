@@ -5,6 +5,10 @@
 			   preinitialize="application1_preinitializeHandler(event)">
 	<fx:Script>
 		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import avmplus.DescribeTypeJson;
+			
 			import guice.ElectricModule;
 			import guice.RaceModule;
 			import guice.SedanModule;
@@ -12,19 +16,28 @@
 			import model.Car;
 			import model.CombustionEngine;
 			import model.ConsumerCar;
+			import model.Everything;
+			import model.IEngine;
 			import model.RemoveableSteeringWheel;
 			import model.SparkPlug;
 			import model.SteeringWheel;
 			import model.radio.Radio;
 			import model.radio.RoundRadio;
 			
-			import mx.events.FlexEvent;
-			
 			import net.digitalprimates.guice.Guice;
 			import net.digitalprimates.guice.IInjector;
+			
+			import reflection.TypeDescription;
 
 			protected function application1_preinitializeHandler(event:FlexEvent):void {
 				
+				var dtj:DescribeTypeJson = new DescribeTypeJson();
+				
+				var desc1:Object = DescribeTypeJson.describeTypeForGuice( Radio );
+				var desc2:Object = DescribeTypeJson.describeTypeForGuice( IEngine );
+
+				var td:TypeDescription = new TypeDescription( Everything );
+
 				var injector0:IInjector = Guice.createInjector();
 				var radio:RoundRadio = injector0.getInstance( RoundRadio );
 				

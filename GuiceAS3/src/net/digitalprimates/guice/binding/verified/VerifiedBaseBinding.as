@@ -27,11 +27,15 @@
  **/ 
 package net.digitalprimates.guice.binding.verified {
 	import flash.system.ApplicationDomain;
+	import flash.utils.getDefinitionByName;
 	import flash.utils.getQualifiedClassName;
 	
 	import net.digitalprimates.guice.Injector;
 	import net.digitalprimates.guice.binding.IBinding;
 	import net.digitalprimates.guice.binding.IVerifiedBinding;
+	
+	import reflection.HorribleJSONCache;
+	import reflection.TypeDescription;
 
 	public class VerifiedBaseBinding implements IVerifiedBinding {
 		private var _typeName:String;
@@ -67,6 +71,38 @@ package net.digitalprimates.guice.binding.verified {
 		}
 		
 		public function verify( evaluationDomain:ApplicationDomain ):void {
+		}
+	
+		protected function implementsUs( typeDefinition:TypeDescription ):Boolean {
+			//typeDefinition is binder
+			//type is ibinder
+			
+			var instance:Object = HorribleJSONCache.get( typeDefinition.type );
+			var inter:Array = instance.traits.interfaces;
+
+			for ( var i:int=0; i<inter.length; i++ ) {
+				if ( getDefinitionByName( inter[ i ] ) == type ) {
+					return true;
+				}
+			}
+			
+			return false;
+		}
+
+		protected function descendsFromUs( typeDefinition:TypeDescription ):Boolean {
+			var instance:Object = HorribleJSONCache.get( typeDefinition.type );
+			var bases:Array = instance.traits.bases;
+			
+			if ( bases ) {
+				for ( var i:int=0; i<bases.length; i++ ) {
+					if ( getDefinitionByName( bases[ i ] ) == type ) {
+						return true;
+					}
+				}				
+			}
+
+			
+			return false;
 		}
 
 		public static function throwMessage( type:Class, dependency:* ):void {

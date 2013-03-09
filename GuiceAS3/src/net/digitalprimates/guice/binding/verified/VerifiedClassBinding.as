@@ -30,22 +30,23 @@ package net.digitalprimates.guice.binding.verified {
 	
 	import net.digitalprimates.guice.Injector;
 	
-	import flex.lang.reflect.Klass;
-
+	import reflection.HorribleTypeDefinitionCache;
+	import reflection.TypeDescription;
+	
 	public class VerifiedClassBinding extends VerifiedBaseBinding {
 		protected var dependency:Class;
 
 		override public function verify( evaluationDomain:ApplicationDomain ):void {
-			var dependencyInfo:Klass = new Klass( dependency, evaluationDomain );
+			var dependencyInfo:TypeDescription = HorribleTypeDefinitionCache.get( dependency );
 			var descendsFrom:Boolean = false;
 			var implementsInterface:Boolean = false;
 			var isClass:Boolean = false;
 			
 			if ( type == dependency ) {
 				isClass = true;
-			} else if ( dependencyInfo.implementsInterface( type ) ) {
+			} else if ( implementsUs( dependencyInfo ) ) {
 				implementsInterface = true;
-			} else if ( dependencyInfo.descendsFrom( type ) ) {
+			} else if ( descendsFromUs( dependencyInfo ) ) {
 				descendsFrom = true;
 			}
 			

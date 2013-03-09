@@ -28,14 +28,6 @@
 package net.digitalprimates.guice {
 	import flash.utils.Dictionary;
 	
-	import flex.lang.reflect.Field;
-	import flex.lang.reflect.InjectionClass;
-	import flex.lang.reflect.Klass;
-	import flex.lang.reflect.Method;
-	import flex.lang.reflect.constructor.ConstructorArg;
-	import flex.lang.reflect.metadata.MetaDataAnnotation;
-	import flex.lang.reflect.metadata.MetaDataArgument;
-	
 	import net.digitalprimates.guice.binder.Binder;
 	import net.digitalprimates.guice.binder.IBinder;
 	import net.digitalprimates.guice.binding.IBinding;
@@ -44,6 +36,12 @@ package net.digitalprimates.guice {
 	import net.digitalprimates.guice.errors.ResolutionError;
 	import net.digitalprimates.guice.errors.UnboundInterfaceError;
 	import net.digitalprimates.guice.reflect.ConstructorAnnotations;
+	
+	import reflection.ClassBuilder;
+	import reflection.HorribleTypeDefinitionCache;
+	import reflection.InjectionPoint;
+	import reflection.MethodInjectionPoint;
+	import reflection.TypeDescription;
 
 	public class Injector implements IInjector, IBindingResolver, IBindingOwner {
 		protected var binder:IBinder;
@@ -57,9 +55,9 @@ package net.digitalprimates.guice {
 		}
 		
 		public function injectMembers( newInstance:* ):void {
-			var type:InjectionClass = new InjectionClass( newInstance.constructor, binder.evaluationDomain );
-			injectMembersType( newInstance, type );
-			injectMembersMethods( newInstance, type );
+			var typeDescription:TypeDescription = HorribleTypeDefinitionCache.getForInstance( newInstance );
+			injectMembersType( newInstance, typeDescription );
+			injectMembersMethods( newInstance, typeDescription );
 		}
 		
 		public function provideBinding( binding:IBinding ):* {
@@ -68,50 +66,55 @@ package net.digitalprimates.guice {
 		}
 
 		public function buildClass( dependency:Class ):* {
-			var type:Klass = new InjectionClass( dependency, binder.evaluationDomain );
-			var built:* = buildFromTypeInfo( type );
+			var typeDescription:TypeDescription = HorribleTypeDefinitionCache.get( dependency );
+			var built:* = buildFromTypeInfo( typeDescription );
 			
-			injectMembersType( built, type );
-			injectMembersMethods( built, type );
+			injectMembersType( built, typeDescription );
+			injectMembersMethods( built, typeDescription );
 
 			return built;
 		}
 
-		private function buildFromTypeInfo( type:Klass ):* {
+		private function buildFromTypeInfo( typeDescription:TypeDescription ):* {
 			var newInstance:*;
 
-			if ( type.isInterface ) {
+			if ( typeDescription.isInterface ) {
 				//Okay, this is actually not a class, it is an interface we are being asked to build..
 				//can't do that, so return null
-				throw new UnboundInterfaceError( type );
+				throw new UnboundInterfaceError( typeDescription );
 			}
 
 			//First, we need to worry about Constructor dependencies so we can build the class
-			var constructorParams:Array = type.constructor.parameterTypes;
-			var constructorAnnotations:ConstructorAnnotations = new ConstructorAnnotations( type ); 
+			var constructorParams:Vector.<InjectionPoint> = typeDescription.constructorPoints;
 			var constructorArguments:Array = [];
-			var constructorArg:ConstructorArg;
+			var constructorArg:InjectionPoint;
 			
-			try {
-				for ( var i:int=0; i<constructorParams.length; i++ ) {
-					constructorArg = constructorParams[ i ] as ConstructorArg;
-	
-					constructorArguments[ i ] = 
-												resolveDependency( constructorArg.type, 
-																   constructorAnnotations.getAnnotationAt( i ),
-																   constructorArg.required );
+			if ( constructorParams ) {
+				try {
+					for ( var i:int=0; i<constructorParams.length; i++ ) {
+						constructorArg = constructorParams[ i ];
+		
+						constructorArguments[ i ] = 
+													resolveDependency( constructorArg.type, 
+																	   constructorArg.annotation,
+																	   constructorArg.optional );
+					}
+				}
+				
+				catch ( e:GuiceError ) {
+					if ( typeDescription.requiredConstructorArgCount < i ) {
+						//We have reached the end of our resolvable dependencies
+						//this means at least one dependency cannot be built.
+						//If the constructor has optional arguments this might be okay
+						//deal later
+						//if ( !type.constructor.canInstantiateWithParams( constructorArguments ) ) { 
+						throw e;
+						//}
+					}
 				}
 			}
 			
-			catch ( e:GuiceError ) {
-				//We have reached the end of our resolvable dependencies
-				//this means at least one dependency cannot be built.
-				//If the constructor has optional arguments this might be okay
-				if ( !type.constructor.canInstantiateWithParams( constructorArguments ) ) { 
-					throw e;
-				}
-			}
-			newInstance = type.constructor.newInstanceApply( constructorArguments );
+			newInstance = ClassBuilder.newInstanceApply( typeDescription, constructorArguments );
 			
 			return newInstance;
 		}
@@ -127,7 +130,7 @@ package net.digitalprimates.guice {
 			return baseBinding;
 		}
 		
-		private function resolveDependency( dependency:Class, annotation:String="", required:Boolean=true ):* {
+		private function resolveDependency( dependency:Class, annotation:String="", optional:Boolean=false ):* {
 			var baseBinding:IBinding = getBinding( dependency, annotation );
 			var newInstance:*;
 			
@@ -146,57 +149,38 @@ package net.digitalprimates.guice {
 			return newInstance;
 		}
 
-		private function injectMembersMethods( newInstance:*, type:Klass ):void {
-			var methods:Array = type.methods;
-			var method:Method;
-			var fieldAnnotation:MetaDataAnnotation;
+		private function injectMembersMethods( newInstance:*, typeDefinition:TypeDescription ):void {
+			var methods:Vector.<MethodInjectionPoint> = typeDefinition.methodPoints;
+			var method:MethodInjectionPoint;
 			var invocationArgs:Array;
 			var paramTypes:Array;
 
-			for ( var j:int=0;j<methods.length; j++ ) {
-				method = methods[ j ];
-				
-				//Worry about static soon
-				fieldAnnotation = method.getMetaData( GuiceAnnotations.INJECT );
-				if ( fieldAnnotation ) {
+			if ( methods ) {
+				for ( var j:int=0;j<methods.length; j++ ) {
+					method = methods[ j ];
+					
 					//If we are annotated with Inject
-					var scope:String = "";
-					if ( fieldAnnotation.defaultArgument ) {
-						scope = fieldAnnotation.defaultArgument.key
-					}
-
-					paramTypes = method.parameterTypes;
 					invocationArgs = [];
-
-					if ( paramTypes ) {
-						for ( var i:int=0; i<paramTypes.length; i++ ) {
-							invocationArgs.push( resolveDependency( paramTypes[ i ], scope ) );
+					if ( method.parameters ) {
+						for ( var i:int=0; i<method.parameters.length; i++ ) {
+							invocationArgs.push( resolveDependency( method.parameters[ i ].type, method.annotation ) );
 						}
 					}
 					
-					method.apply( newInstance, invocationArgs )
+					ClassBuilder.methodApply( newInstance, method.name, invocationArgs );
 				}
 			}
-
 		}
 
-		private function injectMembersType( newInstance:*, type:Klass ):void {
-			var fields:Array = type.fields;
-			var field:Field;
-			var fieldAnnotation:MetaDataAnnotation;
+		private function injectMembersType( newInstance:*, typeDefinition:TypeDescription ):void {
+			var fields:Vector.<InjectionPoint> = typeDefinition.fieldPoints;
+			var field:InjectionPoint;
 			
-			for ( var j:int=0;j<fields.length; j++ ) {
-				field = fields[ j ];
-
-				//Worry about static soon
-				fieldAnnotation = field.getMetaData( GuiceAnnotations.INJECT );
-				if ( fieldAnnotation ) {
-					//If we are annotated with Inject
-					var annotation:String = "";
-					if ( fieldAnnotation.defaultArgument ) {
-						annotation = fieldAnnotation.defaultArgument.key
-					}
-					newInstance[ field.name ] = resolveDependency( field.type, annotation, false );
+			if ( fields ) {
+				for ( var j:int=0;j<fields.length; j++ ) {
+					field = fields[ j ];
+	
+					newInstance[ field.name ] = resolveDependency( field.type, field.annotation, false );
 				}
 			}
 		}
